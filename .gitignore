@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+
+# System-specific logs/outputs
+logs/
+output/
+*.log
+
+# Reports/Drafts
+main_h.tex
+updates_report.md
+PROJECT_KNOWLEDGE_BASE.md
+
+# Streamlit
+.streamlit/

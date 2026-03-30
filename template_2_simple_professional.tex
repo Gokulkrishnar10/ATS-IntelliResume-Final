@@ -1,0 +1,73 @@
+%-------------------------
+% Simple Professional Resume
+% Template Name: simple_professional_resume
+%-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{12pt}{8pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Huge \textbf{GOKULKRISHNA R}} \\ \vspace{5pt}
+    Coimbatore, India $|$ +91 1234567890 $|$ \href{mailto:gokul@example.com}{gokul@example.com} \\
+    \href{https://linkedin.com/in/gokul}{LinkedIn} $|$ \href{https://github.com/gokul}{GitHub}
+\end{center}
+
+%-----------SUMMARY-----------
+\section{Professional Summary}
+Aspiring Data Science Intern with a strong foundation in Python, machine learning, and statistical analysis. Experienced in developing predictive models and conducting thorough data explorations. Committed to leveraging data-driven insights to solve complex problems.
+
+%-----------EDUCATION-----------
+\section{Education}
+\textbf{Amrita Vishwa Vidyapeetham} \hfill Coimbatore, India \\
+Integrated M.Sc. Data Science \hfill Aug. 2021 -- Present
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=*, noitemsep]
+    \item \textbf{Languages:} Python, SQL, C++, Java
+    \item \textbf{Frameworks \& Libraries:} Scikit-learn, Pandas, NumPy, Matplotlib, Seaborn, Streamlit
+    \item \textbf{Tools:} Git, Docker, VS Code, GCP
+\end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+\textbf{Tech Solutions Inc.} \hfill Remote \\
+\textit{Data Science Intern} \hfill June 2023 -- Aug. 2023
+\begin{itemize}[noitemsep]
+    \item Developed and optimized predictive models using Scikit-learn, achieving 15\% accuracy improvement.
+    \item Performed EDA on 1M+ records using Pandas and NumPy for trend identification.
+    \item Integrated model results into live analytics dashboards for stakeholder review.
+\end{itemize}
+
+%-----------PROJECTS-----------
+\section{Projects}
+\textbf{Heart Attack Prediction} \hfill Jan. 2024 -- Feb. 2024
+\begin{itemize}[noitemsep]
+    \item Implemented classification models (Random Forest, SVM) with 92\% precision.
+    \item Performed feature engineering and hyperparameter tuning in Python.
+\end{itemize}
+
+\textbf{ATS-IntelliResume} \hfill Ongoing
+\begin{itemize}[noitemsep]
+    \item Developed an AI-powered resume optimizer using LLaMA-3 and Streamlit.
+    \item Implemented semantic skill matching and automated bullet rewriting logic.
+\end{itemize}
+
+\end{document}

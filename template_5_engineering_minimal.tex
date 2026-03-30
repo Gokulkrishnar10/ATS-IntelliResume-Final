@@ -1,0 +1,69 @@
+%-------------------------
+% Minimal Engineering Resume
+% Template Name: engineering_minimal
+%-------------------------
+
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\titleformat{\section}{\large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{5pt}
+
+\newcommand{\entry}[4]{
+  \vspace{-1pt}
+  \textbf{#1} \hfill #2 \\
+  \textit{#3} \hfill #4 \\
+  \vspace{-5pt}
+}
+
+\begin{document}
+
+\begin{center}
+    {\Huge Gokulkrishna R} \\ \vspace{5pt}
+    Coimbatore, India $|$ gokul@example.com $|$ \href{https://github.com/gokul}{github.com/gokul} $|$ \href{https://linkedin.com/in/gokul}{linkedin.com/in/gokul}
+\end{center}
+
+\section{Technical Skills}
+\begin{itemize}[leftmargin=*, noitemsep]
+    \item \textbf{Core Technologies:} Python, SQL (PostgreSQL), Java, C++, Docker, Git, GCP.
+    \item \textbf{Data Science:} Scikit-learn, Pandas, NumPy, NLP, Transformers, LLMs (LLaMA-3).
+    \item \textbf{Web Frameworks:} Streamlit, FastAPI.
+\end{itemize}
+
+\section{Work Experience}
+\entry{Tech Solutions Inc.}{June 2023 -- Aug. 2023}{Data Science Intern}{Remote}
+\begin{itemize}[noitemsep]
+    \item Engineered features for a churn prediction model, reducing error rates by 12\%.
+    \item Built automated ETL pipelines in Python to process daily telemetric data.
+    \item Created interactive dashboards in Matplotlib for executive reporting.
+\end{itemize}
+
+\section{Key Projects}
+\entry{ATS-IntelliResume}{2024 -- Present}{Lead Architect}{Python, Groq, Streamlit}
+\begin{itemize}[noitemsep]
+    \item Engineered a multi-phase AI pipeline for resume parsing and ATS scoring.
+    \item Integrated semantic matching algorithms using Sentence-Transformers.
+    \item Automated the generation of ATS-optimized resumes in multiple formats.
+\end{itemize}
+
+\entry{Heart Attack Prediction System}{2024}{Developer}{Python, Scikit-learn}
+\begin{itemize}[noitemsep]
+    \item Trained and deployed a Random Forest model for real-time risk assessment.
+    \item Optimized hyper-parameters using GridSearchCV, reaching a 92\% precision score.
+\end{itemize}
+
+\section{Education}
+\entry{Amrita Vishwa Vidyapeetham}{2021 -- 2026}{Integrated M.Sc. Data Science}{Coimbatore, India}
+
+\section{Notable Certifications}
+\begin{itemize}[leftmargin=*, noitemsep]
+    \item Data Analysis using Python (Cognitive Class)
+    \item Data Analytics with Excel (Amrita Vishwa Vidyapeetham)
+\end{itemize}
+
+\end{document}

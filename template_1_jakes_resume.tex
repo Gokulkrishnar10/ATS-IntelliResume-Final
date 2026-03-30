@@ -1,0 +1,170 @@
+%-------------------------
+% Jake's Resume (ATS-Safe Version)
+% Template Name: jakes_resume
+%-------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+%----------FONT OPTIONS----------
+% sans-serif
+% \usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+
+% serif
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Gokulkrishna R} \\ \vspace{1pt}
+    \small 123-456-7890 $|$ \href{mailto:gokul@example.com}{\underline{gokul@example.com}} $|$ 
+    \href{https://linkedin.com/in/gokul}{\underline{linkedin.com/in/gokul}} $|$
+    \href{https://github.com/gokul}{\underline{github.com/gokul}}
+\end{center}
+
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Amrita Vishwa Vidyapeetham}{Coimbatore, India}
+      {Integrated M.Sc. Data Science}{Aug. 2021 -- Present}
+  \resumeSubHeadingListEnd
+
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Data Science Intern}{June 2023 -- Aug. 2023}
+      {Tech Solutions Inc.}{Remote}
+      \resumeItemListStart
+        \resumeItem{Developed and optimized predictive models using Python and Scikit-learn, improving accuracy by 15\%.}
+        \resumeItem{Conducted comprehensive exploratory data analysis (EDA) on datasets with over 1M records using Pandas and NumPy.}
+        \resumeItem{Collaborated with cross-functional teams to integrate model outputs into the company's analytics dashboard.}
+      \resumeItemListEnd
+      
+  \resumeSubHeadingListEnd
+
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\textbf{Heart Attack Prediction} $|$ \emph{Python, Scikit-learn, Pandas, Matplotlib}}{Jan. 2024 -- Feb. 2024}
+          \resumeItemListStart
+            \resumeItem{Implemented various classification models (Random Forest, SVM, Logistic Regression) to predict heart attack risk.}
+            \resumeItem{Achieved a 92\% precision rate through feature engineering and hyperparameter tuning.}
+            \resumeItem{Visualized data insights using Seaborn, revealing key health markers for early detection.}
+          \resumeItemListEnd
+      \resumeProjectHeading
+          {\textbf{ATS-IntelliResume} $|$ \emph{Streamlit, Groq LLM, Python}}{Ongoing}
+          \resumeItemListStart
+            \resumeItem{An AI-powered system designed to parse, score, and optimize resumes against job descriptions.}
+            \resumeItem{Uses LLaMA-3 for semantic skill extraction and bullet optimization.}
+          \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Python, SQL, C++, Java} \\
+     \textbf{Frameworks}{: Scikit-learn, Pandas, NumPy, Streamlit} \\
+     \textbf{Developer Tools}{: Git, Docker, VS Code, Google Cloud Platform} \\
+     \textbf{Libraries}{: Matplotlib, Seaborn, NLTK}
+    }}
+ \end{itemize}
+
+
+%-------------------------------------------
+\end{document}
