@@ -1423,7 +1423,13 @@ Return ONLY the JSON object, nothing else."""
                 'field': field,
                 'institution': inst_name,
                 'location': inst_location,
-                'year': year
+                'year': year,
+                'score': (
+                    edu.get('score', '') or
+                    edu.get('cgpa', '')  or
+                    edu.get('gpa', '')   or
+                    edu.get('grade', '') or ''
+                )
             })
         
         certification_entries = resume_json_final.get('certifications', [])
@@ -1436,7 +1442,7 @@ Return ONLY the JSON object, nothing else."""
     
     else:
         # LLM extraction
-        prompt = f"""Extract education and certifications from this resume.
+        prompt = f"""Extract education and certifications from this resume. For each education entry, extract the grade score (CGPA, GPA, percentage, or marks) if mentioned — otherwise leave as empty string.
 
 Resume:
 {canonical_resume_text}
@@ -1448,7 +1454,8 @@ Return a JSON object with this structure:
       "degree": "Degree name",
       "field": "Field of study",
       "institution": "Institution name",
-      "year": "Year or date range"
+      "year": "Year or date range",
+      "score": "e.g. 8.5 CGPA or 92% or empty string if not found"
     }}
   ],
   "certifications": [
@@ -1484,7 +1491,8 @@ Return ONLY the JSON object, nothing else."""
                         'field': edu.get('field', 'Unknown'),
                         'institution': edu.get('institution', 'Unknown'),
                         'location': '',
-                        'year': edu.get('year', 'Unknown')
+                        'year': edu.get('year', 'Unknown'),
+                        'score': edu.get('score', '')
                     })
                 for cert in data.get('certifications', []):
                     parsed_certifications.append({
@@ -4667,11 +4675,22 @@ def run_phase_9_export(optimized_resume, resume_struct, jd_data, scoring_data, q
                 inst_text += f" | {year}"
             p = doc.add_paragraph(inst_text)
             p.paragraph_format.line_spacing = 1.15
-            p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.space_after = Pt(2)
             for run in p.runs:
                 run.font.size = Pt(10)
                 run.font.name = 'Arial'
-        
+
+            # Add grade/score line if available
+            edu_score = edu.get('score', '')
+            if edu_score and edu_score.lower() not in ['unknown', 'not specified', 'n/a', '']:
+                p = doc.add_paragraph(f"Score: {edu_score}")
+                p.paragraph_format.line_spacing = 1.15
+                p.paragraph_format.space_after = Pt(4)
+                for run in p.runs:
+                    run.font.size = Pt(10)
+                    run.font.italic = True
+                    run.font.name = 'Arial'
+
         doc.add_paragraph()  # Spacing
     
     # SKILLS
@@ -4974,6 +4993,14 @@ def run_phase_9_export(optimized_resume, resume_struct, jd_data, scoring_data, q
                 if year and year.lower() not in ['not specified', 'unknown', 'n/a']:
                     inst_text += f" | {year}"
                 story.append(Paragraph(inst_text, body_style))
+
+                # Add grade/score line if available
+                _pdf_score = edu.get('score', '')
+                if _pdf_score and _pdf_score.lower() not in ['unknown', 'not specified', 'n/a', '']:
+                    story.append(Paragraph(
+                        f"<i>Score: {_pdf_score.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')}</i>",
+                        body_style
+                    ))
             story.append(Spacer(1, 0.1*inch))
         
         # SKILLS
@@ -5204,7 +5231,58 @@ def run_full_pipeline(uploaded_file, jd_text, api_key, guidance_mode="A", enrich
         }
         
         resume_struct = run_phase_3(resume_data_final, resume_metadata, canonical_resume_text, groq_client, loggers)
-        
+
+        # ── Merge user-provided education scores (from pre-pipeline form) ──
+        _edu_scores_user = (enriched_contacts or {}).get('_edu_scores', {})
+        if _edu_scores_user:
+            # Only consider non-empty scores
+            _non_empty_scores = {k: v for k, v in _edu_scores_user.items() if v and v.strip()}
+
+            def _word_overlap(a: str, b: str) -> bool:
+                """True if the two institution strings share at least one meaningful word."""
+                _stop = {'of', 'the', 'and', 'in', 'at', 'for', 'a', 'an'}
+                wa = set(re.sub(r'[^a-z\s]', '', a.lower()).split()) - _stop
+                wb = set(re.sub(r'[^a-z\s]', '', b.lower()).split()) - _stop
+                return bool(wa & wb)
+
+            _parsed_edu_list = resume_struct.get('parsed_education', [])
+
+            for _idx, _edu_e in enumerate(_parsed_edu_list):
+                # Skip if LLM already extracted a score
+                if _edu_e.get('score') and _edu_e['score'].strip():
+                    continue
+
+                _inst_full = _edu_e.get('institution', '').lower().strip()
+
+                # TIER 1: Exact key match (25-char prefix)
+                _ikey = _inst_full[:25]
+                _matched = None
+                if _ikey in _non_empty_scores:
+                    _matched = _non_empty_scores[_ikey]
+
+                # TIER 2: Word-overlap match
+                if not _matched:
+                    for _uk, _us in _non_empty_scores.items():
+                        if _word_overlap(_uk, _inst_full):
+                            _matched = _us
+                            break
+
+                # TIER 3: Positional fallback — assign by index order
+                # (quick-scan found them in same order as LLM, typically)
+                if not _matched:
+                    _score_vals = list(_non_empty_scores.values())
+                    if _idx < len(_score_vals):
+                        _matched = _score_vals[_idx]
+                    elif len(_score_vals) == 1:
+                        # Only one score provided → apply to every entry
+                        _matched = _score_vals[0]
+
+                if _matched:
+                    _edu_e['score'] = _matched
+                    log_system(f"✅ Edu score set for '{_edu_e.get('institution', '')}': {_matched}")
+
+            log_system(f"✅ Education scores merged from user form: {len(_non_empty_scores)} non-empty scores")
+
         # ========== PHASE 4: SKILL MATCHING ==========
         log_system("="*80)
         log_system("PHASE 4: Skill Matching & Gap Analysis")
@@ -5358,6 +5436,90 @@ def _quick_scan_contacts(uploaded_file) -> dict:
         return {'email': '', 'phone': '', 'linkedin': '', 'github': '', 'place': ''}
 
 
+def _quick_scan_education_raw(uploaded_file) -> list:
+    """
+    Quick regex scan of the resume file to detect education entries
+    and any grade scores (CGPA / GPA / percentage) already present.
+    Returns list of {institution, degree, score, key} dicts.
+    Used to pre-populate the Education Score form pre-pipeline.
+    """
+    try:
+        uploaded_file.seek(0)
+        raw_bytes = uploaded_file.read()
+        uploaded_file.seek(0)
+
+        text = ""
+        fname = getattr(uploaded_file, 'name', '').lower()
+        if fname.endswith('.pdf'):
+            reader = PdfReader(io.BytesIO(raw_bytes))
+            text = " \n".join(page.extract_text() or "" for page in reader.pages)
+        elif fname.endswith('.docx'):
+            doc_tmp = Document(io.BytesIO(raw_bytes))
+            text = "\n".join(p.text for p in doc_tmp.paragraphs)
+        else:
+            text = raw_bytes.decode('utf-8', errors='ignore')
+
+        entries = []
+        seen_keys = set()
+        lines = text.split('\n')
+
+        inst_pat = re.compile(
+            r'\b(?:university|college|institute|school|academy|vidyapeetham|'
+            r'convent|matriculation|secondary)\b',
+            re.IGNORECASE
+        )
+        degree_pat = re.compile(
+            r'\b(?:B\.?Tech|B\.?E\.?|M\.?Tech|M\.?E\.?|B\.?Sc|M\.?Sc|MBA|'
+            r'Ph\.?D|Bachelor|Master|12th|10th|HSC|SSC|SSLC|'
+            r'Class\s+XII|Class\s+X|Higher\s+Secondary|Secondary)\b',
+            re.IGNORECASE
+        )
+
+        for i, line in enumerate(lines):
+            line_s = line.strip()
+            if not line_s or len(line_s) < 8 or len(line_s) > 120:
+                continue
+            if not inst_pat.search(line_s):
+                continue
+
+            institution = line_s[:70]
+            key = institution[:25].lower().strip()
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+
+            # Context window: ±3 lines around the institution mention
+            context = ' \n'.join(lines[max(0, i - 3): min(len(lines), i + 5)])
+
+            # Detect degree
+            deg_m = degree_pat.search(context)
+            degree = deg_m.group(0) if deg_m else ""
+
+            # Detect score
+            score = ""
+            cgpa_m = re.search(
+                r'(?:CGPA|GPA|CPI)[:\s]*([\d]+\.?[\d]*)\s*(?:/\s*10)?',
+                context, re.IGNORECASE
+            )
+            if cgpa_m:
+                score = f"{cgpa_m.group(1)} CGPA"
+            else:
+                pct_m = re.search(r'(\d{2,3}\.?\d*)\s*%', context)
+                if pct_m:
+                    score = f"{pct_m.group(1)}%"
+
+            entries.append({
+                'institution': institution,
+                'degree': degree,
+                'score': score,
+                'key': key
+            })
+
+        return entries[:6]   # cap at 6 education entries
+    except Exception:
+        return []
+
+
 if analyze_button:
     if not INTERNAL_GROQ_API_KEY:
         st.error("⚠️ No API Key found. Please configure INTERNAL_GROQ_API_KEY in the code.")
@@ -5367,6 +5529,7 @@ if analyze_button:
         # ── STEP 1: Quick scan on first click ──
         if 'contact_scan' not in st.session_state:
             st.session_state['contact_scan'] = _quick_scan_contacts(uploaded_resume)
+            st.session_state['edu_scan']     = _quick_scan_education_raw(uploaded_resume)
             st.session_state['contact_stage'] = 'form'
             st.rerun()
 
@@ -5375,10 +5538,26 @@ if st.session_state.get('contact_stage') == 'form' and not st.session_state.get(
     missing = {k: v for k, v in found.items() if not v}
 
     if not missing:
-        # All 4 fields found — skip form, go straight to pipeline
-        st.session_state['contact_confirmed'] = True
-        st.session_state['enriched_contacts'] = found
-        st.rerun()
+        # All contact fields found — auto-attach any already-detected edu scores, skip form
+        _edu_auto = {
+            e['key']: e['score']
+            for e in st.session_state.get('edu_scan', [])
+            if e.get('score')
+        }
+        _edu_missing = any(
+            not e.get('score')
+            for e in st.session_state.get('edu_scan', [])
+        )
+        if _edu_missing:
+            # Need to ask about education scores — fall through to show form
+            st.session_state['contact_stage'] = 'form'
+            st.session_state['_contacts_prefilled'] = found
+            st.rerun()
+        else:
+            found['_edu_scores'] = _edu_auto
+            st.session_state['contact_confirmed'] = True
+            st.session_state['enriched_contacts'] = found
+            st.rerun()
     else:
         st.markdown("---")
         st.markdown("### 📋 Contact Information Check")
@@ -5436,7 +5615,48 @@ if st.session_state.get('contact_stage') == 'form' and not st.session_state.get(
                     _lbl  = labels[k][1]
                     st.write(f"{_icon} **{_lbl}**: {v}")
 
+        # ── Education Scores Section ──────────────────────────────
+        _edu_entries = st.session_state.get('edu_scan', [])
+        _edu_scores_map = {}
+        if _edu_entries:
+            st.markdown("---")
+            st.markdown("### 🎓 Education Grades / Scores")
+            st.caption(
+                "Your grade scores (CGPA or %) will be shown in the Education section "
+                "of every exported resume (DOCX, PDF, LaTeX)."
+            )
+            for _edu in _edu_entries:
+                _inst     = _edu['institution']
+                _degree   = _edu['degree']
+                _found_sc = _edu['score']
+                _ekey     = _edu['key']
+                _label    = f"{_degree} — {_inst[:40]}" if _degree else _inst[:55]
+
+                if _found_sc:
+                    st.success(f"✅ **{_label}** — Score auto-detected: `{_found_sc}`")
+                    _edu_scores_map[_ekey] = _found_sc
+                else:
+                    st.markdown(f"**🎓 {_label}** — *Score not found in resume*")
+                    _echoice = st.radio(
+                        f"What to do for {_label}?",
+                        options=["Provide it", "✕ Leave empty"],
+                        key=f"edu_choice_{_ekey}",
+                        horizontal=True,
+                        label_visibility="collapsed"
+                    )
+                    if _echoice == "Provide it":
+                        _eval = st.text_input(
+                            "Enter grade / score:",
+                            placeholder="e.g.  8.5 CGPA   or   92%   or   88.4%",
+                            key=f"edu_val_{_ekey}"
+                        )
+                        _edu_scores_map[_ekey] = _eval.strip()
+                    else:
+                        _edu_scores_map[_ekey] = ""
+                    st.markdown("")
+
         if st.button("✅ Save & Generate Resume", type="primary", use_container_width=True):
+            enriched['_edu_scores'] = _edu_scores_map
             st.session_state['enriched_contacts'] = enriched
             st.session_state['contact_confirmed'] = True
             st.rerun()
@@ -5513,41 +5733,52 @@ if 'results' in st.session_state and st.session_state['results']:
     st.markdown("---")
     
     # ========== 1. SCORE CARDS ==========
-    st.markdown("### ATS Match Scorecard")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        score_value = score_data['final_ats_score']
-        rating = score_data['rating']
-        
-        # Color based on rating
-        if "EXCELLENT" in rating:
-            delta_color = "normal"
-        elif "GOOD" in rating:
-            delta_color = "normal"
-        else:
-            delta_color = "off"
-        
+    st.markdown("### 📊 ATS Match Scorecard")
+
+    # ── Row 1: Original → Optimized comparison ──────────────────────
+    baseline_val  = score_data.get('baseline_score', 0)
+    score_value   = score_data['final_ats_score']
+    score_delta   = score_data.get('score_delta', score_value - baseline_val)
+    rating        = score_data['rating']
+
+    col_orig, col_arr, col_opt = st.columns([2, 1, 2])
+    with col_orig:
         st.metric(
-            "Final ATS Score",
-            f"{score_value:.1f}/100",
-            delta=rating,
-            delta_color=delta_color
+            "📄 Original ATS Score",
+            f"{baseline_val:.1f} / 100",
+            help="Keyword-based ATS score of your original (un-optimized) resume against the JD"
         )
-    
-    with col2:
+    with col_arr:
+        st.markdown(
+            "<div style='text-align:center; font-size:2rem; margin-top:1.1rem;'>&rarr;</div>",
+            unsafe_allow_html=True
+        )
+    with col_opt:
+        _dc = "normal" if score_delta >= 0 else "inverse"
+        st.metric(
+            "✨ Optimized ATS Score",
+            f"{score_value:.1f} / 100",
+            delta=f"{score_delta:+.1f} pts  ({rating})",
+            delta_color=_dc
+        )
+
+    st.divider()
+
+    # ── Row 2: Component breakdown ───────────────────────────────────
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
         keyword_score = score_data['keyword_score']['weighted_score']
-        st.metric("Keyword Match", f"{keyword_score:.1f}%", delta="45% weight")
-    
-    with col3:
+        st.metric("🔑 Keyword Match", f"{keyword_score:.1f}%", delta="45% weight")
+    with col2:
         semantic_score = score_data['semantic_score']
-        st.metric("Semantic Match", f"{semantic_score:.1f}%", delta="25% weight")
-    
-    with col4:
+        st.metric("🧠 Semantic Match", f"{semantic_score:.1f}%", delta="25% weight")
+    with col3:
         formatting_score = score_data['formatting_score']
-        st.metric("Formatting", f"{formatting_score:.0f}%", delta="20% weight")
-    
+        st.metric("📐 Formatting", f"{formatting_score:.0f}%", delta="20% weight")
+    with col4:
+        completeness_score = score_data.get('completeness_score', 0)
+        st.metric("✅ Completeness", f"{completeness_score:.0f}%", delta="10% weight")
+
     st.divider()
     
     # ========== 2. DETAILED TABS ==========
