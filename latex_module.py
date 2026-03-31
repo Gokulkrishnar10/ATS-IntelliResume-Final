@@ -305,9 +305,14 @@ def build_education_latex(education: list, style: str) -> str:
             field   = safe(edu.get('field', ''))
             inst    = safe(edu.get('institution', ''))
             year    = safe(edu.get('year', ''))
+            score   = safe(edu.get('score', ''))
             deg_str = f"{degree} in {field}" if field and field.lower() not in ['unknown', 'not specified', 'n/a'] else degree
             lines.append(rf'  \resumeSubheading{{{inst}}}{{}}')
             lines.append(rf'  {{{deg_str}}}{{{year}}}')
+            if score and score.lower() not in ['unknown', 'not specified', 'n/a', '']:
+                lines.append(r'  \resumeItemListStart')
+                lines.append(rf'    \resumeItem{{Score: {score}}}')
+                lines.append(r'  \resumeItemListEnd')
         lines.append(r'\resumeSubHeadingListEnd')
         return '\n'.join(lines)
 
@@ -318,8 +323,12 @@ def build_education_latex(education: list, style: str) -> str:
             field  = safe(edu.get('field', ''))
             inst   = safe(edu.get('institution', ''))
             year   = safe(edu.get('year', ''))
+            score  = safe(edu.get('score', ''))
             deg_str = f"{degree} in {field}" if field and field.lower() not in ['unknown', 'not specified', 'n/a'] else degree
-            lines.append(rf'\cventry{{{year}}}{{{deg_str}}}{{{inst}}}{{}}{{}}{{}}')
+            # cventry{year}{degree}{institution}{location}{description}{extra}
+            # We put score in the 5th arg (description)
+            score_arg = score if score and score.lower() not in ['unknown', 'not specified', 'n/a', ''] else ''
+            lines.append(rf'\cventry{{{year}}}{{{deg_str}}}{{{inst}}}{{}}{{{score_arg}}}{{}}')
         return '\n'.join(lines)
 
     else:  # simple_professional, academic_cv, engineering_minimal
@@ -329,9 +338,13 @@ def build_education_latex(education: list, style: str) -> str:
             field  = safe(edu.get('field', ''))
             inst   = safe(edu.get('institution', ''))
             year   = safe(edu.get('year', ''))
+            score  = safe(edu.get('score', ''))
             deg_str = f"{degree} in {field}" if field and field.lower() not in ['unknown', 'not specified', 'n/a'] else degree
             lines.append(rf'\textbf{{{deg_str}}} \hfill {year} \\')
-            lines.append(rf'\textit{{{inst}}}')
+            if score and score.lower() not in ['unknown', 'not specified', 'n/a', '']:
+                lines.append(rf'\textit{{{inst}}} \hfill \textit{{Score: {score}}}')
+            else:
+                lines.append(rf'\textit{{{inst}}}')
             lines.append('')
         return '\n'.join(lines)
 
