@@ -79,7 +79,7 @@ st.set_page_config(
 # ==========================================
 # 2. SYSTEM CONSTANTS & API KEY
 # ==========================================
-INTERNAL_GROQ_API_KEY = "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"# Leave empty for security
+INTERNAL_GROQ_API_KEY = ""# Leave empty for security
 EXECUTION_MODE = "USER"
 IS_STREAMLIT = True
 # Direct Groq Client Initialization (Hardcoded Key)
